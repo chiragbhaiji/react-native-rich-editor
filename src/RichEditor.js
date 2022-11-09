@@ -389,6 +389,13 @@ export default class RichTextEditor extends Component {
         }
     }
 
+    insertMention(mention) {
+        if (mention) {
+            this.showAndroidKeyboard();
+            this.sendAction(actions.insertMention, 'result', {mention});
+        }
+    }
+
     preCode(type) {
         this.sendAction(actions.code, 'result', type);
     }

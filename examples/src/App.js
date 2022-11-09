@@ -10,10 +10,11 @@ import React, {Component} from 'react';
 import {Example} from './example.hooks';
 import {Welcome} from './welcome';
 import {Preview} from './preview';
+import {ExampleClass} from './example.class';
 
 const Routes = {
     index: Welcome,
-    rich: Example,
+    rich: ExampleClass,
     preview: Preview,
 };
 

@@ -12,6 +12,7 @@ export const defaultActions = [
     actions.indent,
     actions.outdent,
     actions.insertLink,
+    actions.insertMention,
 ];
 
 function getDefaultIcon() {
@@ -26,6 +27,7 @@ function getDefaultIcon() {
     texts[actions.insertBulletsList] = require('../img/ul.png');
     texts[actions.insertOrderedList] = require('../img/ol.png');
     texts[actions.insertLink] = require('../img/link.png');
+    texts[actions.insertMention] = require('../img/at.png');
     texts[actions.setStrikethrough] = require('../img/strikethrough.png');
     texts[actions.setUnderline] = require('../img/underline.png');
     texts[actions.insertVideo] = require('../img/video.png');
@@ -99,7 +101,7 @@ export default class RichToolbar extends Component {
             let {items = []} = prevState;
             return {
                 actions,
-                data: actions.map((action) => ({action, selected: items.includes(action)})),
+                data: actions.map(action => ({action, selected: items.includes(action)})),
             };
         }
         return null;
@@ -114,7 +116,7 @@ export default class RichToolbar extends Component {
         if (!editor) {
             throw new Error('Toolbar has no editor!');
         } else {
-            editor.registerToolbar((selectedItems) => this.setSelectedItems(selectedItems));
+            editor.registerToolbar(selectedItems => this.setSelectedItems(selectedItems));
             this.editor = editor;
         }
     };
@@ -124,7 +126,7 @@ export default class RichToolbar extends Component {
         if (this.editor && items !== selectedItems) {
             this.setState({
                 items,
-                data: this.state.actions.map((action) => ({action, selected: items.includes(action)})),
+                data: this.state.actions.map(action => ({action, selected: items.includes(action)})),
             });
         }
     }
@@ -161,13 +163,15 @@ export default class RichToolbar extends Component {
     }
 
     _onPress(action) {
-        const {onPressAddImage, onInsertLink, insertVideo} = this.props;
+        const {onPressAddImage, onInsertLink, onInsertMention, insertVideo} = this.props;
         const editor = this.editor;
         if (!editor) return;
 
         switch (action) {
             case actions.insertLink:
                 if (onInsertLink) return onInsertLink();
+            case actions.insertMention:
+                if (onInsertMention) return onInsertMention();
             case actions.setBold:
             case actions.setItalic:
             case actions.undo:
