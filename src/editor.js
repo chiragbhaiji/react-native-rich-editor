@@ -10,6 +10,7 @@ function getContentCSS() {
         .x-todo li {list-style:none;}
         .x-todo-box {position: relative; left: -24px;}
         .x-todo-box input{position: absolute;}
+        .x-mention {color: blue}
         blockquote{border-left: 6px solid #ddd;padding: 5px 0 5px 10px;margin: 15px 0 15px 15px;}
         hr{display: block;height: 0; border: 0;border-top: 1px solid #ccc; margin: 15px 0; padding: 0;}
         pre{padding: 10px 5px 10px 10px;margin: 15px 0;display: block;line-height: 18px;background: #F0F0F0;border-radius: 6px;font-size: 13px; font-family: 'monaco', 'Consolas', "Liberation Mono", Courier, monospace; word-break: break-all; word-wrap: break-word;overflow-x: auto;}
@@ -227,6 +228,7 @@ function createHTML(options = {}) {
             var node = anchorNode;
             Actions.UPDATE_HEIGHT();
             Actions.UPDATE_OFFSET_Y();
+
             if (_keyDown){
                 if(_checkboxFlag === 1 && checkboxNode(node)){
                     _checkboxFlag = 0;
@@ -317,9 +319,15 @@ function createHTML(options = {}) {
             mention: {
                 result: function(data) {
                     data = data || {};
+                    var withAtSymbol = data.withAtSymbol || false;
                     var mention = data.mention || window.prompt('Enter the username');
+
+                    if (withAtSymbol) {
+                        mention = '@' + mention;
+                    }
+
                     if (mention){
-                        exec('insertHTML', "<span style='color: ${'blue'};'>@"+(mention)+" </span>");
+                        exec('insertHTML', "<span class='x-mention'>"+(mention)+" </span>");
                     }
                 }
             },
@@ -466,7 +474,6 @@ function createHTML(options = {}) {
                 } else if (enterStatus && queryCommandValue(formatBlock) === 'blockquote') {
                     formatParagraph();
                 }
-
                 saveSelection();
                 handleChange(_ref);
                 settings.onChange();

@@ -199,6 +199,7 @@ class ExampleClass extends React.Component {
     }
 
     onInsertMention() {
+        this.setState({mentionMode: 'toolbar'});
         this.mentionModal.current?.setModalVisible(true);
     }
 
@@ -207,7 +208,8 @@ class ExampleClass extends React.Component {
     }
 
     onMentionDone({mention}) {
-        this.richText.current?.insertMention(mention);
+        const withAtSymbol = this.state.mentionMode === 'toolbar';
+        this.richText.current?.insertMention(mention, withAtSymbol);
     }
 
     onHome() {
@@ -269,7 +271,10 @@ class ExampleClass extends React.Component {
      * @param {string} inputType
      */
     onInput = ({data, inputType}) => {
-        // console.log(inputType, data)
+        if (inputType === 'insertText' && data === '@') {
+            this.setState({mentionMode: 'onInput'});
+            this.mentionModal.current?.setModalVisible(true);
+        }
     };
 
     handleMessage = ({type, id, data}) => {
@@ -434,7 +439,9 @@ class ExampleClass extends React.Component {
                         ]} // default defaultActions
                         iconMap={{
                             insertEmoji: phizIcon,
-                            [actions.foreColor]: ({tintColor}) => <Text style={[styles.tib, {color: tintColor}]}>FC</Text>,
+                            [actions.foreColor]: ({tintColor}) => (
+                                <Text style={[styles.tib, {color: tintColor}]}>FC</Text>
+                            ),
                             [actions.hiliteColor]: ({tintColor}) => (
                                 <Text style={[styles.tib, {color: tintColor}]}>BC</Text>
                             ),
