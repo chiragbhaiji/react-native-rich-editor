@@ -10,6 +10,7 @@ function getContentCSS() {
         .x-todo li {list-style:none;}
         .x-todo-box {position: relative; left: -24px;}
         .x-todo-box input{position: absolute;}
+        .x-mention {color: blue}
         blockquote{border-left: 6px solid #ddd;padding: 5px 0 5px 10px;margin: 15px 0 15px 15px;}
         hr{display: block;height: 0; border: 0;border-top: 1px solid #ccc; margin: 15px 0; padding: 0;}
         pre{padding: 10px 5px 10px 10px;margin: 15px 0;display: block;line-height: 18px;background: #F0F0F0;border-radius: 6px;font-size: 13px; font-family: 'monaco', 'Consolas', "Liberation Mono", Courier, monospace; word-break: break-all; word-wrap: break-word;overflow-x: auto;}
@@ -52,7 +53,9 @@ function createHTML(options = {}) {
         * {outline: 0px solid transparent;-webkit-tap-highlight-color: rgba(0,0,0,0);-webkit-touch-callout: none;box-sizing: border-box;}
         html, body { margin: 0; padding: 0;font-family: Arial, Helvetica, sans-serif; font-size:1em; height: 100%}
         body { overflow-y: hidden; -webkit-overflow-scrolling: touch;background-color: ${backgroundColor};caret-color: ${caretColor};}
-        .content {font-family: Arial, Helvetica, sans-serif;color: ${color}; width: 100%;${!useContainer ? 'height:100%;' : ''}-webkit-overflow-scrolling: touch;padding-left: 0;padding-right: 0;}
+        .content {font-family: Arial, Helvetica, sans-serif;color: ${color}; width: 100%;${
+        !useContainer ? 'height:100%;' : ''
+    }-webkit-overflow-scrolling: touch;padding-left: 0;padding-right: 0;}
         .pell { height: 100%;} .pell-content { outline: 0; overflow-y: auto;padding: 10px;height: 100%;${contentCSSText}}
     </style>
     <style>
@@ -225,6 +228,7 @@ function createHTML(options = {}) {
             var node = anchorNode;
             Actions.UPDATE_HEIGHT();
             Actions.UPDATE_OFFSET_Y();
+
             if (_keyDown){
                 if(_checkboxFlag === 1 && checkboxNode(node)){
                     _checkboxFlag = 0;
@@ -309,6 +313,21 @@ function createHTML(options = {}) {
                     var url = data.url || window.prompt('Enter the link URL');
                     if (url){
                         exec('insertHTML', "<a href='"+ url +"'>"+(title || url)+"</a>");
+                    }
+                }
+            },
+            mention: {
+                result: function(data) {
+                    data = data || {};
+                    var withAtSymbol = data.withAtSymbol || false;
+                    var mention = data.mention || window.prompt('Enter the username');
+
+                    if (withAtSymbol) {
+                        mention = '@' + mention;
+                    }
+
+                    if (mention){
+                        exec('insertHTML', "<span class='x-mention'>"+(mention)+" </span>");
                     }
                 }
             },
@@ -455,7 +474,6 @@ function createHTML(options = {}) {
                 } else if (enterStatus && queryCommandValue(formatBlock) === 'blockquote') {
                     formatParagraph();
                 }
-
                 saveSelection();
                 handleChange(_ref);
                 settings.onChange();

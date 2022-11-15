@@ -23,6 +23,7 @@ export const actions = {
     insertOrderedList: 'orderedList',
     checkboxList: 'checkboxList',
     insertLink: 'link',
+    insertMention: 'mention',
     insertText: 'text',
     insertHTML: 'html',
     insertImage: 'image',

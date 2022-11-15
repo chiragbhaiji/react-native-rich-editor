@@ -46,7 +46,6 @@ const initHTML = `<br/>
 const phizIcon = require('./assets/phiz.png');
 const htmlIcon = require('./assets/html.png');
 
-
 function createContentStyle(theme) {
     // Can be selected for more situations (cssText or contentCSSText).
     const contentStyle = {
@@ -65,6 +64,19 @@ function createContentStyle(theme) {
     return contentStyle;
 }
 
+const mentionOptions = [
+    {name: 'Olivia'},
+    {name: 'Emma'},
+    {name: 'Charlotte'},
+    {name: 'Amelia'},
+    {name: 'Ava'},
+    {name: 'Sophia'},
+    {name: 'Isabella'},
+    {name: 'Mia'},
+    {name: 'Evelyn'},
+    {name: 'Theodore'},
+];
+
 export function Example(props) {
     let {theme: initTheme = Appearance.getColorScheme(), navigation} = props;
     let richText = useRef();
@@ -74,9 +86,11 @@ export function Example(props) {
     let contentRef = useRef(initHTML);
 
     let [theme, setTheme] = useState(initTheme);
+    const [isMentionModeActive, setIsMentionModeActive] = useState(false);
+    const [mentions, setMentionOptions] = useState(mentionOptions);
     let [emojiVisible, setEmojiVisible] = useState(false);
     let [disabled, setDisable] = useState(false);
-    let contentStyle = useMemo(()=> createContentStyle(theme), [theme]);
+    let contentStyle = useMemo(() => createContentStyle(theme), [theme]);
 
     // on save to preview
     let handleSave = useCallback(() => {
@@ -88,10 +102,13 @@ export function Example(props) {
     }, []);
 
     // editor change data
-    let handleChange = useCallback((html) => {
+    let handleChange = useCallback(html => {
         // save html to content ref;
         contentRef.current = html;
-    }, [])
+        if (html.endsWith(' @</div>')) {
+            setIsMentionModeActive(true);
+        }
+    }, []);
 
     // theme change to editor color
     let themeChange = useCallback(({colorScheme}) => {
@@ -112,28 +129,26 @@ export function Example(props) {
         });
     }, []);
 
-    let onKeyHide = useCallback(() => {
-
-    }, []);
+    let onKeyHide = useCallback(() => {}, []);
 
     let onKeyShow = useCallback(() => {
-        TextInput.State.currentlyFocusedInput() && setEmojiVisible(false)
+        TextInput.State.currentlyFocusedInput() && setEmojiVisible(false);
     }, []);
 
     // editor height change
-    let handleHeightChange = useCallback((height) => {
+    let handleHeightChange = useCallback(height => {
         console.log('editor height change:', height);
     }, []);
 
-    let handleInsertEmoji = useCallback((emoji) => {
+    let handleInsertEmoji = useCallback(emoji => {
         richText.current?.insertText(emoji);
         richText.current?.blurContentEditor();
-    }, [])
+    }, []);
 
     let handleEmoji = useCallback(() => {
         Keyboard.dismiss();
         richText.current?.blurContentEditor();
-        setEmojiVisible(!emojiVisible)
+        setEmojiVisible(!emojiVisible);
     }, [emojiVisible]);
 
     let handleInsertVideo = useCallback(() => {
@@ -187,19 +202,19 @@ export function Example(props) {
         richText.current?.setHiliteColor('red');
     }, []);
 
-    let handlePaste = useCallback((data) => {
+    let handlePaste = useCallback(data => {
         console.log('Paste:', data);
     }, []);
 
     // @deprecated Android keyCode 229
-    let handleKeyUp = useCallback((data) => {
+    let handleKeyUp = useCallback(data => {
         // console.log('KeyUp:', data);
-    }, [])
+    }, []);
 
     // @deprecated Android keyCode 229
-    let handleKeyDown = useCallback((data) => {
+    let handleKeyDown = useCallback(data => {
         // console.log('KeyDown:', data);
-    }, [])
+    }, []);
 
     let handleInput = useCallback(({data, inputType}) => {
         // console.log(inputType, data)
@@ -221,31 +236,30 @@ export function Example(props) {
                 break;
         }
         console.log('onMessage', type, id, data);
-    }, [])
+    }, []);
 
     let handleFocus = useCallback(() => {
-        console.log('editor focus')
-    }, [])
+        console.log('editor focus');
+    }, []);
 
     let handleBlur = useCallback(() => {
         console.log('editor blur');
     }, []);
 
-    let handleCursorPosition = useCallback((scrollY) => {
+    let handleCursorPosition = useCallback(scrollY => {
         // Positioning scroll bar
         scrollRef.current.scrollTo({y: scrollY - 30, animated: true});
-    }, [])
-
+    }, []);
 
     useEffect(() => {
         let listener = [
             Appearance.addChangeListener(themeChange),
             Keyboard.addListener('keyboardDidShow', this.onKeyShow),
-            Keyboard.addListener('keyboardDidHide', this.onKeyHide)
-        ]
+            Keyboard.addListener('keyboardDidHide', this.onKeyHide),
+        ];
         return () => {
             listener.forEach(it => it.remove());
-        }
+        };
     }, []);
 
     let {backgroundColor, color, placeholderColor} = contentStyle;
@@ -253,7 +267,7 @@ export function Example(props) {
 
     return (
         <SafeAreaView style={[styles.container, dark && styles.darkBack]}>
-            <StatusBar barStyle={!dark ? 'dark-content' : 'light-content'}/>
+            <StatusBar barStyle={!dark ? 'dark-content' : 'light-content'} />
             <InsertLinkModal
                 placeholderColor={placeholderColor}
                 color={color}
@@ -262,8 +276,8 @@ export function Example(props) {
                 ref={linkModal}
             />
             <View style={styles.nav}>
-                <Button title={'HOME'} onPress={handleHome}/>
-                <Button title="Preview" onPress={handleSave}/>
+                <Button title={'HOME'} onPress={handleHome} />
+                <Button title="Preview" onPress={handleSave} />
             </View>
             <ScrollView
                 style={[styles.scroll, dark && styles.scrollDark]}
@@ -291,8 +305,8 @@ export function Example(props) {
                         />
                     </View>
                     <View style={styles.item}>
-                        <Button title={theme} onPress={onTheme}/>
-                        <Button title={disabled ? 'enable' : 'disable'} onPress={onDisabled}/>
+                        <Button title={theme} onPress={onTheme} />
+                        <Button title={disabled ? 'enable' : 'disable'} onPress={onDisabled} />
                     </View>
                 </View>
                 <RichToolbar
@@ -332,6 +346,7 @@ export function Example(props) {
                 />
             </ScrollView>
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+                {isMentionModeActive && <TextInput backgroundColor="lightgrey" height={30} />}
                 <RichToolbar
                     style={[styles.richBar, dark && styles.richBarDark]}
                     flatContainerStyle={styles.flatStyle}
@@ -373,12 +388,8 @@ export function Example(props) {
                         [actions.hiliteColor]: ({tintColor}) => (
                             <Text style={[styles.tib, {color: tintColor, backgroundColor: 'red'}]}>BC</Text>
                         ),
-                        [actions.heading1]: ({tintColor}) => (
-                            <Text style={[styles.tib, {color: tintColor}]}>H1</Text>
-                        ),
-                        [actions.heading4]: ({tintColor}) => (
-                            <Text style={[styles.tib, {color: tintColor}]}>H4</Text>
-                        ),
+                        [actions.heading1]: ({tintColor}) => <Text style={[styles.tib, {color: tintColor}]}>H1</Text>,
+                        [actions.heading4]: ({tintColor}) => <Text style={[styles.tib, {color: tintColor}]}>H4</Text>,
                         insertHTML: htmlIcon,
                     }}
                     insertEmoji={handleEmoji}
@@ -388,12 +399,10 @@ export function Example(props) {
                     foreColor={handleForeColor}
                     hiliteColor={handleHiliteColor}
                 />
-                {emojiVisible && <EmojiView onSelect={handleInsertEmoji}/>}
+                {emojiVisible && <EmojiView onSelect={handleInsertEmoji} />}
             </KeyboardAvoidingView>
         </SafeAreaView>
-    )
-
-
+    );
 }
 
 const styles = StyleSheet.create({
@@ -454,4 +463,3 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
     },
 });
-

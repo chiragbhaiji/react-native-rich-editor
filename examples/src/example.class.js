@@ -22,6 +22,7 @@ import {actions, getContentCSS, RichEditor, RichToolbar} from 'react-native-pell
 import {XMath} from '@wxik/core';
 import {InsertLinkModal} from './insertLink';
 import {EmojiView} from './emoji';
+import {InsertMentionModal} from './insertMention';
 
 const imageList = [
     'https://img.lesmao.vip/k/h256/R/MeiTu/1293.jpg',
@@ -48,6 +49,7 @@ const htmlIcon = require('./assets/html.png');
 class ExampleClass extends React.Component {
     richText = React.createRef();
     linkModal = React.createRef();
+    mentionModal = React.createRef();
     scrollRef = React.createRef();
 
     constructor(props) {
@@ -63,7 +65,9 @@ class ExampleClass extends React.Component {
         that.onTheme = ::that.onTheme;
         that.onPressAddImage = ::that.onPressAddImage;
         that.onInsertLink = ::that.onInsertLink;
+        that.onInsertMention = ::that.onInsertMention;
         that.onLinkDone = ::that.onLinkDone;
+        that.onMentionDone = ::that.onMentionDone;
         that.themeChange = ::that.themeChange;
         that.handleChange = ::that.handleChange;
         that.handleHeightChange = ::that.handleHeightChange;
@@ -194,8 +198,18 @@ class ExampleClass extends React.Component {
         this.linkModal.current?.setModalVisible(true);
     }
 
+    onInsertMention() {
+        this.setState({mentionMode: 'toolbar'});
+        this.mentionModal.current?.setModalVisible(true);
+    }
+
     onLinkDone({title, url}) {
         this.richText.current?.insertLink(title, url);
+    }
+
+    onMentionDone({mention}) {
+        const withAtSymbol = this.state.mentionMode === 'toolbar';
+        this.richText.current?.insertMention(mention, withAtSymbol);
     }
 
     onHome() {
@@ -257,8 +271,11 @@ class ExampleClass extends React.Component {
      * @param {string} inputType
      */
     onInput = ({data, inputType}) => {
-        // console.log(inputType, data)
-    }
+        if (inputType === 'insertText' && data === '@') {
+            this.setState({mentionMode: 'onInput'});
+            this.mentionModal.current?.setModalVisible(true);
+        }
+    };
 
     handleMessage = ({type, id, data}) => {
         let index = 0;
@@ -306,6 +323,13 @@ class ExampleClass extends React.Component {
                     onDone={that.onLinkDone}
                     ref={that.linkModal}
                 />
+                <InsertMentionModal
+                    placeholderColor={placeholderColor}
+                    color={color}
+                    backgroundColor={backgroundColor}
+                    onDone={that.onMentionDone}
+                    ref={that.mentionModal}
+                />
                 <View style={styles.nav}>
                     <Button title={'HOME'} onPress={that.onHome} />
                     <Button title="Preview" onPress={that.save} />
@@ -349,6 +373,7 @@ class ExampleClass extends React.Component {
                         disabledIconTint={'#bfbfbf'}
                         onPressAddImage={that.onPressAddImage}
                         onInsertLink={that.onInsertLink}
+                        onInsertMention={that.onInsertMention}
                     />
                     <RichEditor
                         // initialFocus={true}
@@ -414,9 +439,11 @@ class ExampleClass extends React.Component {
                         ]} // default defaultActions
                         iconMap={{
                             insertEmoji: phizIcon,
-                            [actions.foreColor]: ({tintColor}) => <Text style={[styles.tib, {color: 'blue'}]}>FC</Text>,
+                            [actions.foreColor]: ({tintColor}) => (
+                                <Text style={[styles.tib, {color: tintColor}]}>FC</Text>
+                            ),
                             [actions.hiliteColor]: ({tintColor}) => (
-                                <Text style={[styles.tib, {color: tintColor, backgroundColor: 'red'}]}>BC</Text>
+                                <Text style={[styles.tib, {color: tintColor}]}>BC</Text>
                             ),
                             [actions.heading1]: ({tintColor}) => (
                                 <Text style={[styles.tib, {color: tintColor}]}>H1</Text>
