@@ -76,4 +76,5 @@ export const messages = {
     OFFSET_HEIGHT: 'OFFSET_HEIGHT',
     OFFSET_Y: 'OFFSET_Y',
     ON_INPUT: 'ON_INPUT',
+    ON_MENTION: 'ON_MENTION',
 };

@@ -271,10 +271,12 @@ class ExampleClass extends React.Component {
      * @param {string} inputType
      */
     onInput = ({data, inputType}) => {
-        if (inputType === 'insertText' && data === '@') {
-            this.setState({mentionMode: 'onInput'});
-            this.mentionModal.current?.setModalVisible(true);
-        }
+        // console.log({data, inputType})
+    };
+
+    onMention = () => {
+        this.setState({mentionMode: 'onInput'});
+        this.mentionModal.current?.setModalVisible(true);
     };
 
     handleMessage = ({type, id, data}) => {
@@ -394,6 +396,7 @@ class ExampleClass extends React.Component {
                         onKeyUp={that.handleKeyUp}
                         onKeyDown={that.handleKeyDown}
                         onInput={that.onInput}
+                        onMention={that.onMention}
                         onMessage={that.handleMessage}
                         onFocus={that.handleFocus}
                         onBlur={that.handleBlur}

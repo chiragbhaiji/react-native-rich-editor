@@ -33,6 +33,7 @@ function createHTML(options = {}) {
         keyDownListener = false,
         keyUpListener = false,
         inputListener = false,
+        mentionListener = false,
         autoCapitalize = 'off',
         enterKeyHint = '',
         autoCorrect = false,
@@ -151,6 +152,10 @@ function createHTML(options = {}) {
 
         function checkboxNode(node){
             return getNodeByClass(node, 'x-todo');
+        }
+
+        function mentionNode(node){
+            return getNodeByClass(node, 'x-mention');
         }
 
         function execCheckboxList (node, html){
@@ -319,15 +324,42 @@ function createHTML(options = {}) {
             mention: {
                 result: function(data) {
                     data = data || {};
-                    var withAtSymbol = data.withAtSymbol || false;
-                    var mention = data.mention || window.prompt('Enter the username');
-
-                    if (withAtSymbol) {
-                        mention = '@' + mention;
-                    }
-
+                    mention = '@' + data.mention;
                     if (mention){
-                        exec('insertHTML', "<span class='x-mention'>"+(mention)+" </span>");
+                        const focusedTextContent = focusNode.textContent;
+
+                        console.log('###focusedTextContent: ', focusNode.nodeValue);
+
+                        if (focusedTextContent === '@') {
+                            focusNode.textContent = '';
+
+                            let range = document.createRange();
+                            let selection = document.getSelection();
+                            
+                            range.selectNode(focusNode);
+                            range.collapse(false);
+                            
+                            selection.removeAllRanges();
+                            selection.addRange(range);
+                            
+                            // focusNode.innerHTML = '<br>';
+
+                            exec('insertHTML', "<span class='x-mention'>"+(mention)+"</span><br>");
+
+                        } else if (focusedTextContent && focusedTextContent.endsWith('@')) {
+                            console.log(focusedTextContent.endsWith('@'), 'focusedTextContent.endsWith(@)');
+
+                            focusNode.textContent = focusedTextContent.slice(0, focusedTextContent.length - 1);
+
+                            var range = document.createRange();//Create a range (a range is a like the selection but invisible)
+                            range.selectNodeContents(focusNode);//Select the entire contents of the element with the range
+                            range.collapse(false);//collapse the range to the end point. false means collapse to end rather than the start
+                            var selection = window.getSelection();//get the selection object (allows you to change selection)
+                            selection.removeAllRanges();//remove any selections already made
+                            selection.addRange(range);
+
+                            exec('insertHTML', "<span class='x-mention'>"+(mention)+"</span>&nbsp;");
+                        }
                     }
                 }
             },
@@ -462,18 +494,24 @@ function createHTML(options = {}) {
             content.className = "pell-content";
             content.oninput = function (_ref) {
                 // var firstChild = _ref.target.firstChild;
-                if ((anchorNode === void 0 || anchorNode === content) && queryCommandValue(formatBlock) === ''){
+
+                if (mentionNode(focusNode) && mentionNode(focusNode).className === 'x-mention' && _ref.inputType === 'deleteContentBackward') {
+                    mentionNode(focusNode).remove();
+                }
+
+                if ((anchorNode === void 0 || anchorNode === content) && queryCommandValue(formatBlock) === '') {
                     if ( !compositionStatus ){
                         formatParagraph(true);
                         paragraphStatus = 0;
                     } else {
                         paragraphStatus = 1;
                     }
-                } else if (content.innerHTML === '<br>'){
-                     content.innerHTML = '';
+                } else if (content.innerHTML === '<br>') {
+                    content.innerHTML = '';
                 } else if (enterStatus && queryCommandValue(formatBlock) === 'blockquote') {
                     formatParagraph();
                 }
+
                 saveSelection();
                 handleChange(_ref);
                 settings.onChange();
@@ -525,8 +563,19 @@ function createHTML(options = {}) {
                 ${keyUpListener} && postKeyAction(event, "CONTENT_KEYUP")
             }
             function handleKeydown(event){
+                if (${mentionListener} && event.key === '@') {
+                    const selection = window.getSelection();
+                    const lastChar = selection.focusNode?.textContent?.[selection.focusOffset - 1];
+
+                    console.log('-------lastChar: ', lastChar);
+                    console.log('-------className: ', selection.getRangeAt(0).endContainer.className);
+
+                    if (!lastChar || selection.getRangeAt(0).endContainer.className === 'pell-content' || (lastChar === '\xa0' || lastChar === ' ' || lastChar === '')) {
+                        postAction({type: "ON_MENTION"});
+                    }
+                }
                 _keyDown = true;
-                 handleState();
+                handleState();
                 if (event.key === 'Enter'){
                     enterStatus = 1; // set enter true
                     var box;
@@ -572,6 +621,17 @@ function createHTML(options = {}) {
             }
             function handleClick(event){
                 var ele = event.target;
+                
+                if (ele.className === 'x-mention' && mentionNode(focusNode)) {
+                    const _mentionNode = mentionNode(focusNode);
+
+                    var range = document.createRange();
+                    range.selectNodeContents(_mentionNode);
+                    var sel = window.getSelection();
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                }
+
                 if (ele.nodeName === 'INPUT' && ele.type === 'checkbox'){
                     // Set whether the checkbox is selected by default
                     if (ele.checked) ele.setAttribute('checked', '');

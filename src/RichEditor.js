@@ -68,6 +68,7 @@ export default class RichTextEditor extends Component {
             onKeyUp,
             onKeyDown,
             onInput,
+            onMention,
             enterKeyHint,
             autoCapitalize,
             autoCorrect,
@@ -93,6 +94,7 @@ export default class RichTextEditor extends Component {
                         keyUpListener: !!onKeyUp,
                         keyDownListener: !!onKeyDown,
                         inputListener: !!onInput,
+                        mentionListener: !!onMention,
                         enterKeyHint,
                         autoCapitalize,
                         autoCorrect,
@@ -156,8 +158,18 @@ export default class RichTextEditor extends Component {
 
     onMessage(event) {
         const that = this;
-        const {onFocus, onBlur, onChange, onPaste, onKeyUp, onKeyDown, onInput, onMessage, onCursorPosition} =
-            that.props;
+        const {
+            onFocus,
+            onBlur,
+            onChange,
+            onPaste,
+            onKeyUp,
+            onKeyDown,
+            onInput,
+            onMention,
+            onMessage,
+            onCursorPosition,
+        } = that.props;
         try {
             const message = JSON.parse(event.nativeEvent.data);
             const data = message.data;
@@ -205,6 +217,9 @@ export default class RichTextEditor extends Component {
                     break;
                 case messages.ON_INPUT:
                     onInput?.(data);
+                    break;
+                case messages.ON_MENTION:
+                    onMention?.();
                     break;
                 case messages.OFFSET_HEIGHT:
                     that.setWebHeight(data);
