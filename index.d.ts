@@ -45,6 +45,11 @@ export interface RichEditorProps extends WebViewProps {
     disabled?: boolean;
 
     /**
+     * Boolean value to enable scaling of font based on device settings. Default is true.
+     */
+    shouldAutoScaleFonts?: boolean;
+
+    /**
      * String value to set text auto capitalization.
      * See: https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/autocapitalize
      */
@@ -197,6 +202,11 @@ export class RichEditor extends React.Component<RichEditorProps> {
      * 1 = 10px, 2 = 13px, 3 = 16px, 4 = 18px, 5 = 24px, 6 = 32px, 7 = 48px;
      */
     setFontSize: (size: 1 | 2 | 3 | 4 | 5 | 6 | 7) => void;
+
+    /**
+     Scale the font size of the whole content based on the passed scale value.
+     */
+     setBodyFontScale: (scale: number) => void;
 
     /**
      * The background color of the selected text

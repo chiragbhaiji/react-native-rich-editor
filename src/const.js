@@ -28,6 +28,7 @@ export const actions = {
     insertImage: 'image',
     insertVideo: 'video',
     fontSize: 'fontSize',
+    bodyFontScale: 'bodyFontScale',
     fontName: 'fontName',
     setSubscript: 'subscript',
     setSuperscript: 'superscript',

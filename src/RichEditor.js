@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {WebView} from 'react-native-webview';
 import {actions, messages} from './const';
-import {Keyboard, Platform, StyleSheet, TextInput, View} from 'react-native';
+import {Keyboard, Platform, StyleSheet, TextInput, View, Dimensions} from 'react-native';
 import {createHTML} from './editor';
 
 const PlatformIOS = Platform.OS === 'ios';
@@ -33,6 +33,7 @@ export default class RichTextEditor extends Component {
         defaultParagraphSeparator: 'div',
         editorInitializedCallback: () => {},
         initialHeight: 0,
+        shouldAutoScaleFonts: true,
     };
 
     constructor(props) {
@@ -44,6 +45,7 @@ export default class RichTextEditor extends Component {
         that.registerToolbar = that.registerToolbar.bind(that);
         that._onKeyboardWillShow = that._onKeyboardWillShow.bind(that);
         that._onKeyboardWillHide = that._onKeyboardWillHide.bind(that);
+        that._handleDimensionsChange = that._handleDimensionsChange.bind(that);
         that.init = that.init.bind(that);
         that.setRef = that.setRef.bind(that);
         that.onViewLayout = that.onViewLayout.bind(that);
@@ -53,7 +55,15 @@ export default class RichTextEditor extends Component {
         that.layout = {};
         that.selectionChangeListeners = [];
         const {
-            editorStyle: {backgroundColor, color, placeholderColor, initialCSSText, cssText, contentCSSText, caretColor} = {},
+            editorStyle: {
+                backgroundColor,
+                color,
+                placeholderColor,
+                initialCSSText,
+                cssText,
+                contentCSSText,
+                caretColor,
+            } = {},
             html,
             pasteAsPlainText,
             onPaste,
@@ -95,29 +105,43 @@ export default class RichTextEditor extends Component {
             },
             keyboardHeight: 0,
             height: initialHeight,
+            fontScale: this.props.shouldAutoScaleFonts ? Dimensions.get('window').fontScale : 1,
         };
         that.focusListeners = [];
     }
 
     componentDidMount() {
         this.unmount = false;
+
         if (PlatformIOS) {
-            this.keyboardEventListeners = [
+            this.eventListeners = [
                 Keyboard.addListener('keyboardWillShow', this._onKeyboardWillShow),
                 Keyboard.addListener('keyboardWillHide', this._onKeyboardWillHide),
             ];
         } else {
-            this.keyboardEventListeners = [
+            this.eventListeners = [
                 Keyboard.addListener('keyboardDidShow', this._onKeyboardWillShow),
                 Keyboard.addListener('keyboardDidHide', this._onKeyboardWillHide),
+                Dimensions.addEventListener('change', this._handleDimensionsChange),
             ];
+        }
+
+        if (this.props.shouldAutoScaleFonts) {
+            const dimensionsChangeListener = Dimensions.addEventListener('change', this._handleDimensionsChange);
+            this.eventListeners = [...this.eventListeners, dimensionsChangeListener];
         }
     }
 
     componentWillUnmount() {
         this.unmount = true;
-        this.keyboardEventListeners.forEach(eventListener => eventListener.remove());
+        this.eventListeners.forEach(eventListener => eventListener.remove());
     }
+
+    _handleDimensionsChange = nextDimension => {
+        const nextFontScale = nextDimension.window.fontScale;
+        this.setState({fontScale: nextFontScale});
+        this.setBodyFontScale(nextFontScale);
+    };
 
     _onKeyboardWillShow(event) {
         this._keyOpen = true;
@@ -148,7 +172,8 @@ export default class RichTextEditor extends Component {
 
     onMessage(event) {
         const that = this;
-        const {onFocus, onBlur, onChange, onPaste, onKeyUp, onKeyDown, onInput, onMessage, onCursorPosition} = that.props;
+        const {onFocus, onBlur, onChange, onPaste, onKeyUp, onKeyDown, onInput, onMessage, onCursorPosition} =
+            that.props;
         try {
             const message = JSON.parse(event.nativeEvent.data);
             const data = message.data;
@@ -239,14 +264,14 @@ export default class RichTextEditor extends Component {
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
-        const {editorStyle, disabled,placeholder} = this.props;
+        const {editorStyle, disabled, placeholder} = this.props;
         if (prevProps.editorStyle !== editorStyle) {
             editorStyle && this.setContentStyle(editorStyle);
         }
         if (disabled !== prevProps.disabled) {
             this.setDisable(disabled);
         }
-        if(placeholder!== prevProps.placeholder){
+        if (placeholder !== prevProps.placeholder) {
             this.setPlaceholder(placeholder);
         }
     }
@@ -397,6 +422,10 @@ export default class RichTextEditor extends Component {
         this.sendAction(actions.fontSize, 'result', size);
     }
 
+    setBodyFontScale(scale) {
+        this.sendAction(actions.bodyFontScale, 'result', scale);
+    }
+
     setForeColor(color) {
         this.sendAction(actions.foreColor, 'result', color);
     }
@@ -441,6 +470,10 @@ export default class RichTextEditor extends Component {
         initialFocus && !disabled && that.focusContentEditor();
         // no visible ?
         that.sendAction(actions.init);
+
+        if (this.props.shouldAutoScaleFonts) {
+            that.setBodyFontScale(that.state.fontScale);
+        }
     }
 
     /**
@@ -473,6 +506,6 @@ const styles = StyleSheet.create({
     },
 
     webview: {
-        backgroundColor: "transparent"
-    }
+        backgroundColor: 'transparent',
+    },
 });
