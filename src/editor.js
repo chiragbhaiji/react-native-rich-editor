@@ -299,6 +299,10 @@ function createHTML(options = {}) {
             hiliteColor: {  state: function() { return queryCommandState('hiliteColor'); }, result: function(color) { return exec('hiliteColor', color); }},
             foreColor: { state: function() { return queryCommandState('foreColor'); }, result: function(color) { return exec('foreColor', color); }},
             fontSize: { result: function(size) { return exec('fontSize', size); }},
+            bodyFontScale: { result: function(scale) { 
+                const fontSize = scale + 'em';
+                document.body.style.fontSize = fontSize;
+            }},
             fontName: { result: function(name) { return exec('fontName', name); }},
             link: {
                 result: function(data) {
